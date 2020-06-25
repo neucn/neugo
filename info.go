@@ -1,12 +1,14 @@
 package neugo
 
-// 个人信息
+import "net/http"
+
+// PersonalInfo 个人信息
 type PersonalInfo struct {
-	Profile profile
-	Mail    mail
-	Wallet  wallet
-	Network network
-	Library library
+	Profile profile // 基本信息
+	Mail    mail    // 校邮箱信息
+	Wallet  wallet  // 校园卡余额信息
+	Network network // 校园网余额信息
+	Library library // 图书馆借阅情况
 }
 
 // 个人基本信息
@@ -42,7 +44,7 @@ type library struct {
 	Current int
 }
 
-func parseInfo(body string) (*PersonalInfo, error) {
+func parseInfo(client *http.Client) (*PersonalInfo, error) {
 	// TODO
 	return nil, nil
 }

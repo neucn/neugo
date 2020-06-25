@@ -33,6 +33,9 @@ func (c *cas) Login(client *http.Client) (string, error) {
 	if c.UseToken {
 		setToken(client, c.Token, c.Domain)
 		resp, err = client.Get(requestURL)
+		if err != nil {
+			return "", err
+		}
 	} else {
 		lt, postURL, err := getArgs(client, requestURL)
 		if err != nil {

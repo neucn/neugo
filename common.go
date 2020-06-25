@@ -18,7 +18,7 @@ import (
 	neu.About(session).Info()
 */
 
-// 获取带有cookiejar的http.Client，默认Timeout为3秒
+// NewSession 获取带有cookiejar的http.Client，默认Timeout为3秒
 func NewSession() *http.Client {
 	n := &http.Client{Timeout: 3 * time.Second}
 	jar, _ := cookiejar.New(nil)
@@ -27,18 +27,15 @@ func NewSession() *http.Client {
 	return n
 }
 
-// 平台
+// Platform 需要操作的平台
 type Platform = byte
 
 const (
-	CAS Platform = iota
-	WebVPN
+	CAS    Platform = iota // 一网通 pass.neu.edu.cn
+	WebVPN                 // webvpn pass-443.webvpn.neu.edu.cn
 )
 
-/*
-	USE
-*/
-// 提供登陆动作的链式调用
+// Use 接收一个 *http.Client，提供登陆动作的链式调用。如果 client 没有 cookiejar 会自动加上一个空 cookiejar.
 func Use(client *http.Client) AuthSelector {
 	if client.Jar == nil {
 		jar, _ := cookiejar.New(nil)
@@ -48,18 +45,18 @@ func Use(client *http.Client) AuthSelector {
 	return &useCtx{Client: client, CAS: &cas{}}
 }
 
-// 选择鉴权方式
+// AuthSelector 选择鉴权方式
 type AuthSelector interface {
 	WithAuth(username, password string) PlatformSelector
 	WithToken(token string) PlatformSelector
 }
 
-// 选择平台
+// PlatformSelector 选择平台
 type PlatformSelector interface {
 	On(platform Platform) ActionSelector
 }
 
-// 选择要执行的动作
+// ActionSelector 选择要执行的动作
 type ActionSelector interface {
 	Login() error
 	LoginService(url string) (string, error)
@@ -117,17 +114,13 @@ func (c *useCtx) LoginService(url string) (string, error) {
 	return c.CAS.Login(c.Client)
 }
 
-/*
-	About
-*/
-
 // TODO 查询
-// 提供查询相关信息的链式调用
+// About 接收一个 *http.Client，提供查询相关信息的链式调用
 func About(client *http.Client) QuerySelector {
 	return &aboutCtx{Client: client}
 }
 
-// 选择要查询的内容
+// QuerySelector 选择要查询的内容
 type QuerySelector interface {
 	Token(platform Platform) (string, error)
 	Info(platform Platform) (*PersonalInfo, error)

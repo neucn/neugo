@@ -34,7 +34,7 @@ func TestGetArgs(t *testing.T) {
 	a.Equal("LT-324784-5WKhfINLQf4HWzozfafzSnEguyQ6Ox-tpass", lt)
 	a.Equal("/tpass/login?service=https%3A%2F%2Fportal.neu.edu.cn%2Ftp_up%2F", pu)
 
-	lt, pu, err = getArgs(client, srv.URL+"/fail")
+	_, _, err = getArgs(client, srv.URL+"/fail")
 	a.NotNil(err)
 }
 
