@@ -12,7 +12,6 @@ var (
 )
 
 var (
-	errorNoTitleFound  = errors.New("无法识别页面")
 	errorAccountBanned = errors.New("账号受限")
 	errorWrongSetting  = errors.New("一网通设置有误")
 	errorAuthFailed    = errors.New("账号密码错误或Token失效")
@@ -22,7 +21,7 @@ var (
 func isLogged(body string) (bool, error) {
 	title, err := matchSingle(titleExp, body)
 	if err != nil {
-		return false, errorNoTitleFound
+		return true, nil
 	}
 
 	switch title {

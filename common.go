@@ -6,18 +6,6 @@ import (
 	"time"
 )
 
-/*
-	session := neu.NewSession()
-	neu.Use(session).WithAuth("20185342","test").On(neu.WebVPN).Login()
-	neu.Use(session).WithAuth("20185342","test").On(neu.WebVPN).LoginService("xxx")
-	neu.Use(session).WithAuth("20185342","test").Validate()
-	neu.Use(session).WithToken("xxx").On(neu.CAS).Login()
-	neu.Use(session).WithToken("xxx").On(neu.CAS).LoginService("xxx")
-	neu.Use(session).WithToken("xxx").Validate()
-	neu.About(session).Token()
-	neu.About(session).Info()
-*/
-
 // NewSession 获取带有cookiejar的http.Client，默认Timeout为3秒
 func NewSession() *http.Client {
 	n := &http.Client{Timeout: 3 * time.Second}

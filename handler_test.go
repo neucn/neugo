@@ -12,11 +12,11 @@ func TestIsLogged(t *testing.T) {
 		Expect  error
 	}
 	testCases := []*testCase{
-		{Content: "<title>", Expect: errorNoTitleFound},
+		{Content: "<title>智慧东大--统一身份认证</title>", Expect: errorAuthFailed},
 		{Content: "<title>智慧东大</title>", Expect: errorWrongSetting},
 		{Content: "<title>系统提示</title>", Expect: errorAccountBanned},
-		{Content: "<title>智慧东大--统一身份认证</title>", Expect: errorAuthFailed},
 		{Content: "<title><||__&^$></title>", Expect: nil},
+		{Content: "<>", Expect: nil},
 	}
 
 	for _, c := range testCases {
