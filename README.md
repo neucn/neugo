@@ -6,14 +6,14 @@
 
 ```go
 session := neugo.NewSession()
-neugo.Use(session).WithAuth("student_id","pass").On(neu.CAS).Login()
-neugo.Use(session).WithAuth("student_id","pass").On(neu.WebVPN).Login()
-neugo.Use(session).WithAuth("student_id","pass").On(neu.CAS).LoginService("xxx")
-neugo.Use(session).WithAuth("student_id","pass").On(neu.WebVPN).LoginService("xxx")
-neugo.Use(session).WithToken("xxx").On(neu.CAS).Login()
-neugo.Use(session).WithToken("xxx").On(neu.WebVPN).Login()
-neugo.Use(session).WithToken("xxx").On(neu.CAS).LoginService("xxx")
-neugo.Use(session).WithToken("xxx").On(neu.WebVPN).LoginService("xxx")
+neugo.Use(session).WithAuth("student_id","pass").On(neugo.CAS).Login()
+neugo.Use(session).WithAuth("student_id","pass").On(neugo.WebVPN).Login()
+neugo.Use(session).WithAuth("student_id","pass").On(neugo.CAS).LoginService("xxx")
+neugo.Use(session).WithAuth("student_id","pass").On(neugo.WebVPN).LoginService("xxx")
+neugo.Use(session).WithToken("xxx").On(neugo.CAS).Login()
+neugo.Use(session).WithToken("xxx").On(neugo.WebVPN).Login()
+neugo.Use(session).WithToken("xxx").On(neugo.CAS).LoginService("xxx")
+neugo.Use(session).WithToken("xxx").On(neugo.WebVPN).LoginService("xxx")
 ```
 
 ## Roadmap
