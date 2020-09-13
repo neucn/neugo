@@ -1,11 +1,16 @@
 package neugo
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
+	"encoding/hex"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"regexp"
+	"strings"
 )
 
 var (
@@ -69,4 +74,81 @@ func getCookie(cookies []*http.Cookie, name string) (string, error) {
 		}
 	}
 	return "", errorCookieNotFound
+}
+
+func EncryptWebVPNUrl(url string) string {
+	// protocol
+	var protocol, port string
+	if strings.HasPrefix(url, "https://") {
+		protocol = "https"
+		url = url[8:]
+	} else {
+		protocol = "http"
+		if strings.HasPrefix(url, "http://") {
+			url = url[7:]
+		} else if strings.HasPrefix(url, "//") {
+			url = url[2:]
+		}
+	}
+
+	segments := strings.Split(strings.Split(url, "?")[0], ":")
+
+	if len(segments) > 1 {
+		length := len(segments[0])
+		port = strings.Split(segments[1], "/")[0]
+		url = url[:length] + url[length+len(port)+1:]
+	}
+
+	index := strings.Index(url, "/")
+	key := "wrdvpnisthebest!"
+
+	if index == -1 {
+		url = encrypt(url, key, key)
+	} else {
+		host := url[:index]
+		path := url[index:]
+		url = encrypt(host, key, key) + path
+	}
+
+	if len(port) > 0 {
+		url = fmt.Sprintf("/%s-%s/%s", protocol, port, url)
+	} else {
+		url = fmt.Sprintf("/%s/%s", protocol, url)
+	}
+
+	return url
+}
+
+func encrypt(url string, key string, iv string) string {
+	return hex.EncodeToString(
+		encryptCFB(toBytes(url), toBytes(key), toBytes(iv)),
+	)
+}
+
+func toBytes(text string) []byte {
+	text = url.QueryEscape(text)
+	length := len(text)
+	result := make([]byte, 0, len(text))
+	for i := 0; i < length; {
+		c := text[i]
+		i++
+		if c == 37 {
+			b, _ := hex.DecodeString(text[i : i+2])
+			result = append(result, b[0])
+			i += 2
+		} else {
+			result = append(result, c)
+		}
+	}
+	return result
+}
+
+func encryptCFB(origData, key, iv []byte) []byte {
+	block, _ := aes.NewCipher(key)
+	ciphertext := make([]byte, len(origData))
+	_iv := iv[:aes.BlockSize]
+	ciphertext = append(_iv, ciphertext...)
+	stream := cipher.NewCFBEncrypter(block, _iv)
+	stream.XORKeyStream(ciphertext[aes.BlockSize:], origData)
+	return ciphertext
 }

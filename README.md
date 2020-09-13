@@ -24,6 +24,9 @@ neugo.Use(session).WithToken("xxx").On(neugo.CAS).Login()
 neugo.Use(session).WithToken("xxx").On(neugo.WebVPN).Login()
 neugo.Use(session).WithToken("xxx").On(neugo.CAS).LoginService("xxx")
 neugo.Use(session).WithToken("xxx").On(neugo.WebVPN).LoginService("xxx")
+
+neugo.About(session).Token(neugo.WebVPN)
+neugo.About(session).Token(neugo.CAS)
 ```
 
 ## 📃 License

@@ -40,25 +40,43 @@ func genRequestURL(service, baseURL string) string {
 	return baseURL + url.QueryEscape(service)
 }
 
-func setToken(client *http.Client, token, domain string) {
-	cookie := &http.Cookie{
-		Name:   "CASTGC",
-		Value:  token,
+var (
+	webVpnCookieUrl = &url.URL{
+		Scheme: "https",
+		Path:   "/",
+		Host:   webvpnCookieDomain,
+	}
+
+	casCookieUrl = &url.URL{
+		Scheme: "https",
 		Path:   "/tpass/",
-		Domain: domain,
+		Host:   casDomain,
+	}
+)
+
+func setToken(client *http.Client, token string, platform Platform) {
+	cookie := &http.Cookie{
+		Value: token,
+	}
+
+	if platform == WebVPN {
+		cookie.Domain = webvpnCookieDomain
+		cookie.Name = "wengine_vpn_ticketwebvpn_neu_edu_cn"
+		cookie.Path = "/"
+	} else {
+		cookie.Domain = casDomain
+		cookie.Name = "CASTGC"
+		cookie.Path = "/tpass/"
 	}
 	setCookie(client, cookie)
 }
 
-func getToken(client *http.Client, domain string) (string, error) {
-	var cookies []*http.Cookie
-	dm := &url.URL{
-		Scheme: "https",
-		Path:   "/tpass/",
-		Host:   domain,
+func getToken(client *http.Client, platform Platform) (string, error) {
+	if platform == WebVPN {
+		cookies := client.Jar.Cookies(webVpnCookieUrl)
+		return getCookie(cookies, "wengine_vpn_ticketwebvpn_neu_edu_cn")
 	}
 
-	cookies = client.Jar.Cookies(dm)
-
+	cookies := client.Jar.Cookies(casCookieUrl)
 	return getCookie(cookies, "CASTGC")
 }

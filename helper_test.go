@@ -46,8 +46,8 @@ func TestHelperExtractDomain(t *testing.T) {
 	testCases := []*testCase{
 		{URL: "https://webvpn.neu.edu.cn/", Expect: "https://webvpn.neu.edu.cn"},
 		{URL: "https://219-216-96-4.webvpn.neu.edu.cn/eams/homeExt.action", Expect: "https://219-216-96-4.webvpn.neu.edu.cn"},
-		{URL: "https://pass-443.webvpn.neu.edu.cn/tpass/login?service=https%3A%2F%2Fportal-443.webvpn.neu.edu.cn%2Ftp_up%2F",
-			Expect: "https://pass-443.webvpn.neu.edu.cn"},
+		{URL: "https://webvpn.neu.edu.cn/https/77726476706e69737468656265737421e0f6528f693e6d45300d8db9d6562d/tpass/login?service=https%3A%2F%2Fportal-443.webvpn.neu.edu.cn%2Ftp_up%2F",
+			Expect: "https://webvpn.neu.edu.cn"},
 		{URL: "https://pass.neu.edu.cn/tpass/login?service=https%3A%2F%2Fportal.neu.edu.cn%2Ftp_up%2F",
 			Expect: "https://pass.neu.edu.cn"},
 		{URL: "http://pass.neu.edu.cn/tpass/login?service=https%3A%2F%2Fportal.neu.edu.cn%2Ftp_up%2F", Expect: "http://pass.neu.edu.cn"},

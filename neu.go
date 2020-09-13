@@ -11,27 +11,29 @@ import (
 var (
 	portalURL = "https://portal.neu.edu.cn/tp_up/"
 
-	webvpnBaseURL = "https://pass-443.webvpn.neu.edu.cn/tpass/login?service="
+	webvpnBaseURL = "https://webvpn.neu.edu.cn/https/77726476706e69737468656265737421e0f6528f693e6d45300d8db9d6562d/tpass/login?service="
 	casBaseURL    = "https://pass.neu.edu.cn/tpass/login?service="
 
-	webvpnDomain = "pass-443.webvpn.neu.edu.cn"
-	casDomain    = "pass.neu.edu.cn"
+	webvpnDomain       = "webvpn.neu.edu.cn"
+	webvpnCookieDomain = ".webvpn.neu.edu.cn"
+	casDomain          = "pass.neu.edu.cn"
 )
 
-type cas struct {
+type launcher struct {
 	Username, Password, Token string
 	UseToken                  bool
 	ServiceURL                string
 	Domain, BaseURL           string
+	Platform                  Platform
 }
 
 // 登陆一网通
-func (c *cas) Login(client *http.Client) (string, error) {
+func (c *launcher) Login(client *http.Client) (string, error) {
 	requestURL := genRequestURL(c.ServiceURL, c.BaseURL)
 	var resp *http.Response
 	var err error
 	if c.UseToken {
-		setToken(client, c.Token, c.Domain)
+		setToken(client, c.Token, c.Platform)
 		resp, err = client.Get(requestURL)
 		if err != nil {
 			return "", err

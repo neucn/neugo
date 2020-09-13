@@ -1,6 +1,7 @@
 package neugo
 
 import (
+	"errors"
 	"net/http"
 	"net/http/cookiejar"
 	"time"
@@ -8,7 +9,19 @@ import (
 
 // NewSession 获取带有cookiejar的http.Client，默认Timeout为3秒
 func NewSession() *http.Client {
-	n := &http.Client{Timeout: 3 * time.Second}
+	n := &http.Client{
+		Timeout: 3 * time.Second,
+		CheckRedirect: func() func(req *http.Request, via []*http.Request) error {
+			redirects := 0
+			return func(req *http.Request, via []*http.Request) error {
+				if redirects > 16 {
+					return errors.New("stopped after 16 redirects")
+				}
+				redirects++
+				return nil
+			}
+		}(),
+	}
 	jar, _ := cookiejar.New(nil)
 	// 绑定session
 	n.Jar = jar
@@ -20,7 +33,7 @@ type Platform = byte
 
 const (
 	CAS    Platform = iota // 一网通 pass.neu.edu.cn
-	WebVPN                 // webvpn pass-443.webvpn.neu.edu.cn
+	WebVPN                 // webvpn webvpn.neu.edu.cn
 )
 
 // Use 接收一个 *http.Client，提供登陆动作的链式调用。如果 client 没有 cookiejar 会自动加上一个空 cookiejar.
@@ -30,7 +43,7 @@ func Use(client *http.Client) AuthSelector {
 		// 绑定session
 		client.Jar = jar
 	}
-	return &useCtx{Client: client, CAS: &cas{}}
+	return &useCtx{Client: client, Launcher: &launcher{}}
 }
 
 // AuthSelector 选择鉴权方式
@@ -54,7 +67,7 @@ type useCtx struct {
 	// 请求客户端
 	Client *http.Client
 
-	CAS *cas
+	Launcher *launcher
 }
 
 var _ AuthSelector = &useCtx{}
@@ -63,28 +76,29 @@ var _ ActionSelector = &useCtx{}
 
 // 选择一网通平台或 Webvpn平台
 func (c *useCtx) On(platform Platform) ActionSelector {
+	c.Launcher.Platform = platform
 	if platform == WebVPN {
-		c.CAS.Domain = webvpnDomain
-		c.CAS.BaseURL = webvpnBaseURL
+		c.Launcher.Domain = webvpnDomain
+		c.Launcher.BaseURL = webvpnBaseURL
 	} else {
-		c.CAS.Domain = casDomain
-		c.CAS.BaseURL = casBaseURL
+		c.Launcher.Domain = casDomain
+		c.Launcher.BaseURL = casBaseURL
 	}
 	return c
 }
 
 // 使用账号密码
 func (c *useCtx) WithAuth(username, password string) PlatformSelector {
-	c.CAS.UseToken = false
-	c.CAS.Username = username
-	c.CAS.Password = password
+	c.Launcher.UseToken = false
+	c.Launcher.Username = username
+	c.Launcher.Password = password
 	return c
 }
 
 // 使用Token
 func (c *useCtx) WithToken(token string) PlatformSelector {
-	c.CAS.UseToken = true
-	c.CAS.Token = token
+	c.Launcher.UseToken = true
+	c.Launcher.Token = token
 	return c
 }
 
@@ -98,8 +112,8 @@ func (c *useCtx) Login() error {
 // https://219.216.96.4/eams/homeExt.action
 // 返回页面内容，如果登陆失败会返回error
 func (c *useCtx) LoginService(url string) (string, error) {
-	c.CAS.ServiceURL = url
-	return c.CAS.Login(c.Client)
+	c.Launcher.ServiceURL = url
+	return c.Launcher.Login(c.Client)
 }
 
 // TODO 查询
@@ -121,15 +135,9 @@ type aboutCtx struct {
 var _ QuerySelector = &aboutCtx{}
 
 func (c *aboutCtx) Token(platform Platform) (string, error) {
-	var domain string
-	if platform == WebVPN {
-		domain = webvpnDomain
-	} else {
-		domain = casDomain
-	}
-	return getToken(c.Client, domain)
+	return getToken(c.Client, platform)
 }
 
 func (c *aboutCtx) Info(platform Platform) (*PersonalInfo, error) {
-	return nil, nil
+	panic("not implemented yet")
 }
