@@ -76,6 +76,9 @@ func getCookie(cookies []*http.Cookie, name string) (string, error) {
 	return "", errorCookieNotFound
 }
 
+// 获取某服务在webvpn上的url，例如
+// http://219.216.96.4/eams/homeExt.action =>
+// https://webvpn.neu.edu.cn/http/77726476706e69737468656265737421a2a618d275613e1e275ec7f8/eams/homeExt.action
 func EncryptWebVPNUrl(url string) string {
 	// protocol
 	var protocol, port string
@@ -111,9 +114,9 @@ func EncryptWebVPNUrl(url string) string {
 	}
 
 	if len(port) > 0 {
-		url = fmt.Sprintf("/%s-%s/%s", protocol, port, url)
+		url = fmt.Sprintf("https://webvpn.neu.edu.cn/%s-%s/%s", protocol, port, url)
 	} else {
-		url = fmt.Sprintf("/%s/%s", protocol, url)
+		url = fmt.Sprintf("https://webvpn.neu.edu.cn/%s/%s", protocol, url)
 	}
 
 	return url
