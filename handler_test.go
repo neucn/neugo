@@ -57,6 +57,10 @@ func TestGetArgs(t *testing.T) {
 
 	_, err = getLT(client, srv.URL+"/fail")
 	a.NotNil(err)
+
+	// meaningless
+	_, err = getLT(client, "")
+	a.NotNil(err)
 }
 
 func TestBuildAuthRequest(t *testing.T) {

@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-// 获取某服务在 WebVPN 上的 url，若 url 中协议为空则默认为 http
+// EncryptToWebVPN 获取某服务在 WebVPN 上的 url，若 url 中协议为空则默认为 http
 //
 // 例如 http://219.216.96.4/eams/homeExt.action =>
 // https://webvpn.neu.edu.cn/http/77726476706e69737468656265737421a2a618d275613e1e275ec7f8/eams/homeExt.action

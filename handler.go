@@ -21,24 +21,23 @@ func login(c config) (string, error) {
 	var resp *http.Response
 	var err error
 	var loginURL string
+	var request *http.Request
 	if c.Platform == CAS {
 		loginURL = casLoginURL
 	} else {
 		loginURL = webvpnLoginURL
 	}
-
 	if c.UseToken {
 		setToken(c.Client, c.Token, c.Platform)
-		resp, err = c.Client.Get(loginURL)
+		request = buildGetRequest(loginURL)
 	} else {
 		lt, err := getLT(c.Client, loginURL)
 		if err != nil {
 			return "", err
 		}
-		request := buildAuthRequest(c.Username, c.Password, lt, loginURL)
-
-		resp, err = c.Client.Do(request)
+		request = buildAuthRequest(c.Username, c.Password, lt, loginURL)
 	}
+	resp, err = c.Client.Do(request)
 	if err != nil {
 		return "", err
 	}
@@ -57,21 +56,20 @@ var (
 )
 
 // 获取 LT
-func getLT(client *http.Client, requestURL string) (lt string, err error) {
-	req, _ := http.NewRequest("GET", requestURL, nil)
-	var resp *http.Response
-	resp, err = client.Do(req)
+func getLT(client *http.Client, requestURL string) (string, error) {
+	req := buildGetRequest(requestURL)
+	resp, err := client.Do(req)
 	if err != nil {
-		return
+		return "", err
 	}
 
 	body := extractBody(resp)
 
-	lt, err = matchSingle(ltExp, body)
+	lt, err := matchSingle(ltExp, body)
 	if err != nil {
-		return lt, errorArgsNotFound
+		return "", errorArgsNotFound
 	}
-	return
+	return lt, nil
 }
 
 // 构造登陆请求
@@ -89,6 +87,12 @@ func buildAuthRequest(username, password, lt, reqURL string) (req *http.Request)
 
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Add("Referer", reqURL)
+	return
+}
+
+// 构造 GET 请求
+func buildGetRequest(reqURL string) (req *http.Request) {
+	req, _ = http.NewRequest("GET", reqURL, nil)
 	return
 }
 

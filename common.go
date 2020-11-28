@@ -20,8 +20,8 @@ func NewSession() *http.Client {
 type Platform = byte
 
 const (
-	CAS    Platform = iota // 一网通 pass.neu.edu.cn
-	WebVPN                 // webvpn webvpn.neu.edu.cn
+	CAS    Platform = iota // CAS pass.neu.edu.cn
+	WebVPN                 // WebVPN webvpn.neu.edu.cn
 )
 
 type config struct {
