@@ -2,6 +2,9 @@ package neugo
 
 import (
 	"github.com/stretchr/testify/assert"
+	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 )
 
@@ -25,46 +28,45 @@ func TestIsLogged(t *testing.T) {
 	}
 }
 
-func TestGenRequestURL(t *testing.T) {
+func TestGetArgs(t *testing.T) {
 	a := assert.New(t)
-	type testCase struct {
-		Service string
-		VPN     bool
-		Expect  string
-	}
-	testCases := []*testCase{
-		{Service: "https://portal.neu.edu.cn/tp_up/", VPN: false, Expect: "https://pass.neu.edu.cn/tpass/login?service=https%3A%2F%2Fportal.neu.edu.cn%2Ftp_up%2F"},
-		{Service: "https://portal.neu.edu.cn/tp_up/", VPN: true, Expect: "https://webvpn.neu.edu.cn/https/77726476706e69737468656265737421e0f6528f693e6d45300d8db9d6562d/tpass/login?service=https%3A%2F%2Fportal.neu.edu.cn%2Ftp_up%2F"},
-		{Service: "https://219-216-96-4.webvpn.neu.edu.cn/eams/homeExt.action", VPN: true,
-			Expect: "https://webvpn.neu.edu.cn/https/77726476706e69737468656265737421e0f6528f693e6d45300d8db9d6562d/tpass/login?service=https%3A%2F%2F219-216-96-4.webvpn.neu.edu.cn%2Feams%2FhomeExt.action"},
-		{Service: "http://219.216.96.4/eams/homeExt.action", VPN: false,
-			Expect: "https://pass.neu.edu.cn/tpass/login?service=http%3A%2F%2F219.216.96.4%2Feams%2FhomeExt.action"},
-	}
-	for _, c := range testCases {
-		var bu string
-		if c.VPN {
-			bu = webvpnBaseURL
-		} else {
-			bu = casBaseURL
-		}
-		result := genRequestURL(c.Service, bu)
-		a.Equal(c.Expect, result)
-	}
+	handler := http.NewServeMux()
+	handler.HandleFunc("/success", func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte(`<form id="loginForm" action="/tpass/login?service=https%3A%2F%2Fportal.neu.edu.cn%2Ftp_up%2F" method="post">
+				    <input type="hidden" id="rsa" name="rsa"/>
+			        <input type="hidden" id="ul" name="ul"/>
+			        <input type="hidden" id="pl" name="pl"/>
+			        <input type="hidden" id="lt" name="lt" value="LT-324784-5WKhfINLQf4HWzozfafzSnEguyQ6Ox-tpass" />
+			        <input type="hidden" name="execution" value="e3s1" />
+			        <input type="hidden" name="_eventId" value="submit" />`))
+	})
+	handler.HandleFunc("/fail", func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte(`<form id="loginForm" action="/tpass/login?service=https%3A%2F%2Fportal.neu.edu.cn%2Ftp_up%2F" method="post">
+				    <input type="hidden" id="rsa" name="rsa"/>
+			        <input type="hidden" id="ul" name="ul"/>
+			        <input type="hidden" id="pl" name="pl"/>
+			        <input type="hidden" id="lt" name="lt"/>
+			        <input type="hidden" name="execution" value="e3s1" />
+			        <input type="hidden" name="_eventId" value="submit" />`))
+	})
+	srv := httptest.NewServer(handler)
+	client := NewSession()
+	lt, err := getLT(client, srv.URL+"/success")
+	a.Nil(err)
+	a.Equal("LT-324784-5WKhfINLQf4HWzozfafzSnEguyQ6Ox-tpass", lt)
+
+	_, err = getLT(client, srv.URL+"/fail")
+	a.NotNil(err)
 }
 
-func TestHandlerToken(t *testing.T) {
+func TestBuildAuthRequest(t *testing.T) {
 	a := assert.New(t)
-	client := NewSession()
-	_, err := getToken(client, WebVPN)
-	a.NotNil(err)
-	token := "test-token"
-	setToken(client, token, WebVPN)
-	result, err := getToken(client, WebVPN)
-	a.Nil(err)
-	a.Equal(token, result)
-
-	setToken(client, token, CAS)
-	result, err = getToken(client, CAS)
-	a.Nil(err)
-	a.Equal(token, result)
+	r := buildAuthRequest("test", "test", "test",
+		"https://pass.neu.edu.cn/tpass/login?service=http%3A%2F%2F219.216.96.4%2Feams%2FhomeExt.action")
+	res, _ := ioutil.ReadAll(r.Body)
+	_ = r.Body.Close()
+	a.Equal("rsa=testtesttest&ul=4&pl=4&lt=test&execution=e1s1&_eventId=submit",
+		string(res))
+	a.Equal("https://pass.neu.edu.cn/tpass/login?service=http%3A%2F%2F219.216.96.4%2Feams%2FhomeExt.action",
+		r.URL.String())
 }

@@ -11,32 +11,28 @@ import (
 func TestUse(t *testing.T) {
 	a := assert.New(t)
 	session := NewSession()
-	s1 := Use(session).WithAuth("test", "test").On(CAS)
+	s1 := Use(session).WithAuth("test", "test")
 	ctx, ok := s1.(*useCtx)
 	a.True(ok)
-	a.Equal("test", ctx.Launcher.Username)
-	a.Equal("test", ctx.Launcher.Password)
-	a.Equal(casBaseURL, ctx.Launcher.BaseURL)
-	a.Equal(casDomain, ctx.Launcher.Domain)
+	a.Equal("test", ctx.Username)
+	a.Equal("test", ctx.Password)
 
 	emptyClient := &http.Client{}
-	s2 := Use(emptyClient).WithToken("test").On(CAS)
+	s2 := Use(emptyClient).WithToken("test")
 	ctx, ok = s2.(*useCtx)
 	a.True(ok)
 	a.NotNil(ctx.Client.Jar)
-	a.Equal("test", ctx.Launcher.Token)
-	a.Equal(true, ctx.Launcher.UseToken)
+	a.Equal("test", ctx.Token)
+	a.Equal(true, ctx.UseToken)
 
 	s3 := Use(session)
 	s3.WithToken("test")
-	s3.WithAuth("test", "test").On(WebVPN)
+	s3.WithAuth("test", "test")
 	ctx, ok = s3.(*useCtx)
 	a.True(ok)
-	a.Equal(false, ctx.Launcher.UseToken)
-	a.Equal("test", ctx.Launcher.Username)
-	a.Equal("test", ctx.Launcher.Password)
-	a.Equal(webvpnBaseURL, ctx.Launcher.BaseURL)
-	a.Equal(webvpnDomain, ctx.Launcher.Domain)
+	a.Equal(false, ctx.UseToken)
+	a.Equal("test", ctx.Username)
+	a.Equal("test", ctx.Password)
 }
 
 func TestAll(t *testing.T) {
@@ -54,20 +50,25 @@ func TestAll(t *testing.T) {
 	username := argList[0]
 	password := argList[1]
 
-	err := Use(session).WithAuth(username, password).On(CAS).Login()
+	err := Use(session).WithAuth(username, password).Login(CAS)
 	if err != nil && strings.Contains(err.Error(), "timeout") {
 		a.Nil(err)
 	}
-	err = Use(session).WithAuth(username, password).On(WebVPN).Login()
+	err = Use(session).WithAuth(username, password).Login(WebVPN)
+	if err != nil && strings.Contains(err.Error(), "timeout") {
+		a.Nil(err)
+	}
+	_, err = Use(session).WithAuth(username, password).DebugLogin(CAS)
 	if err != nil && strings.Contains(err.Error(), "timeout") {
 		a.Nil(err)
 	}
 
+	// about
 	token, err := About(session).Token(CAS)
 	a.Nil(err)
 	a.NotZero(len(token))
 	session1 := NewSession()
-	err = Use(session1).WithToken(token).On(CAS).Login()
+	err = Use(session1).WithToken(token).Login(CAS)
 	if err != nil && strings.Contains(err.Error(), "timeout") {
 		a.Nil(err)
 	}
@@ -76,7 +77,7 @@ func TestAll(t *testing.T) {
 	a.Nil(err)
 	a.NotZero(len(token))
 	session2 := NewSession()
-	err = Use(session2).WithToken(token).On(WebVPN).Login()
+	err = Use(session2).WithToken(token).Login(WebVPN)
 	if err != nil && strings.Contains(err.Error(), "timeout") {
 		a.Nil(err)
 	}
