@@ -2,7 +2,7 @@ package neugo
 
 import (
 	"github.com/stretchr/testify/assert"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -15,9 +15,9 @@ func TestIsLogged(t *testing.T) {
 		Expect  error
 	}
 	testCases := []*testCase{
-		{Content: "<title>智慧东大--统一身份认证</title>", Expect: errorAuthFailed},
-		{Content: "<title>智慧东大</title>", Expect: errorWrongSetting},
-		{Content: "<title>系统提示</title>", Expect: errorAccountBanned},
+		{Content: "<title>智慧东大--统一身份认证</title>", Expect: ErrorAuthFailed},
+		{Content: "<title>智慧东大</title>", Expect: ErrorAccountNeedsReset},
+		{Content: "<title>系统提示</title>", Expect: ErrorAccountBanned},
 		{Content: "<title><||__&^$></title>", Expect: nil},
 		{Content: "<>", Expect: nil},
 	}
@@ -67,7 +67,7 @@ func TestBuildAuthRequest(t *testing.T) {
 	a := assert.New(t)
 	r := buildAuthRequest("test", "test", "test",
 		"https://pass.neu.edu.cn/tpass/login?service=http%3A%2F%2F219.216.96.4%2Feams%2FhomeExt.action")
-	res, _ := ioutil.ReadAll(r.Body)
+	res, _ := io.ReadAll(r.Body)
 	_ = r.Body.Close()
 	a.Equal("rsa=testtesttest&ul=4&pl=4&lt=test&execution=e1s1&_eventId=submit",
 		string(res))

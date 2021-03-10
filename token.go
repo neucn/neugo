@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	errorCookieNotFound = errors.New("cookie中没有此项")
+	ErrorCookieNotFound = errors.New("no such entry found in the cookies")
 )
 
 // 设置cookie
@@ -26,7 +26,7 @@ func getCookie(cookies []*http.Cookie, name string) (string, error) {
 			return item.Value, nil
 		}
 	}
-	return "", errorCookieNotFound
+	return "", ErrorCookieNotFound
 }
 
 var (

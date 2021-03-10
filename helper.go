@@ -2,7 +2,7 @@ package neugo
 
 import (
 	"errors"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"regexp"
 )
@@ -31,7 +31,7 @@ func matchSingle(re *regexp.Regexp, content string) (string, error) {
 
 // 读取响应体，并关闭resp.Body
 func extractBody(resp *http.Response) string {
-	res, _ := ioutil.ReadAll(resp.Body)
+	res, _ := io.ReadAll(resp.Body)
 	_ = resp.Body.Close()
 	return string(res)
 }

@@ -50,9 +50,8 @@ func login(c config) (string, error) {
 }
 
 var (
-	ltExp             = regexp.MustCompile(`name="lt" value="(.+?)"`)
-	postURLExp        = regexp.MustCompile(`id="loginForm" action="(.+?)"`)
-	errorArgsNotFound = errors.New("页面参数不全")
+	ltExp           = regexp.MustCompile(`name="lt" value="(.+?)"`)
+	ErrorLTNotFound = errors.New("LT not found")
 )
 
 // 获取 LT
@@ -67,7 +66,7 @@ func getLT(client *http.Client, requestURL string) (string, error) {
 
 	lt, err := matchSingle(ltExp, body)
 	if err != nil {
-		return "", errorArgsNotFound
+		return "", ErrorLTNotFound
 	}
 	return lt, nil
 }
@@ -101,9 +100,9 @@ var (
 )
 
 var (
-	errorAccountBanned = errors.New("账号受限")
-	errorWrongSetting  = errors.New("一网通设置有误")
-	errorAuthFailed    = errors.New("账号密码错误或Token失效")
+	ErrorAccountBanned     = errors.New("account is banned")
+	ErrorAccountNeedsReset = errors.New("account needs reset")
+	ErrorAuthFailed        = errors.New("incorrect username or password or cookie")
 )
 
 // 根据title判断是否登陆成功，若不成功则结束并报错
@@ -115,11 +114,11 @@ func isLogged(body string) (bool, error) {
 
 	switch title {
 	case "智慧东大--统一身份认证":
-		return false, errorAuthFailed
+		return false, ErrorAuthFailed
 	case "智慧东大":
-		return false, errorWrongSetting
+		return false, ErrorAccountNeedsReset
 	case "系统提示":
-		return false, errorAccountBanned
+		return false, ErrorAccountBanned
 	}
 	return true, nil
 }
