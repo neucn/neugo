@@ -1,6 +1,21 @@
 // Package neugo
 //
-// 作为轻量级的东北大学一网通操作库，仅封装登陆操作。
-// 并提供从 Cookie 中读取 Token 以及将某服务的 URL 转换为 WebVPN 上的
-// URL 的工具函数
+// This package encapsulates some operations on the campus SSO service, in particular CAS, of NEU (cn).
+//
+// Examples:
+//
+// E1. Log in to the CAS using account and get the token.
+//   // you can use your own *http.Client instead of creating a new session.
+//   client := neugo.NewSession()
+//   err := neugo.Use(client).WithAuth("student_id", "password").Login(CAS)
+//   token := neugo.About(client).Token(CAS)
+//
+// E2. Request a service via Web VPN using token.
+//   client := neugo.NewSession()
+//   err := neugo.Use(client).WithToken("your_webvpn_token").Login(WebVPN)
+//   serviceURL := "https://ipgw.neu.edu.cn"
+//	 reqURL := neugo.EncryptURLToWebVPN(serviceURL)
+//   req := http.NewRequest("GET", reqURL, nil)
+//   resp, err := client.Do(req)
+//
 package neugo

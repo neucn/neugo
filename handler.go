@@ -9,6 +9,7 @@ import (
 )
 
 var (
+	// generated from EncryptURLToWebVPN("https://pass.neu.edu.cn/tpass/login")
 	webvpnLoginURL = "https://webvpn.neu.edu.cn/https/77726476706e69737468656265737421e0f6528f693e6d45300d8db9d6562d/tpass/login"
 	casLoginURL    = "https://pass.neu.edu.cn/tpass/login"
 
@@ -16,7 +17,9 @@ var (
 	casCookieDomain    = "pass.neu.edu.cn"
 )
 
-// 登陆一网通
+// Perform login request and returns the body of response.
+//
+// If login failed, an error will be returned with the body.
 func login(c config) (string, error) {
 	var resp *http.Response
 	var err error
@@ -54,7 +57,7 @@ var (
 	ErrorLTNotFound = errors.New("LT not found")
 )
 
-// 获取 LT
+// Get LT by performing a pre-request.
 func getLT(client *http.Client, requestURL string) (string, error) {
 	req := buildGetRequest(requestURL)
 	resp, err := client.Do(req)
@@ -64,14 +67,14 @@ func getLT(client *http.Client, requestURL string) (string, error) {
 
 	body := extractBody(resp)
 
-	lt, err := matchSingle(ltExp, body)
-	if err != nil {
+	lt := matchSingle(ltExp, body)
+	if lt == "" {
 		return "", ErrorLTNotFound
 	}
 	return lt, nil
 }
 
-// 构造登陆请求
+// Build a POST *http.Request for login.
 func buildAuthRequest(username, password, lt, reqURL string) (req *http.Request) {
 	data := "rsa=" + username + password + lt +
 		"&ul=" + strconv.Itoa(len(username)) +
@@ -89,7 +92,7 @@ func buildAuthRequest(username, password, lt, reqURL string) (req *http.Request)
 	return
 }
 
-// 构造 GET 请求
+// Build a GET *http.Request.
 func buildGetRequest(reqURL string) (req *http.Request) {
 	req, _ = http.NewRequest("GET", reqURL, nil)
 	return
@@ -105,10 +108,12 @@ var (
 	ErrorAuthFailed        = errors.New("incorrect username or password or cookie")
 )
 
-// 根据title判断是否登陆成功，若不成功则结束并报错
+// Check if logged in successfully.
 func isLogged(body string) (bool, error) {
-	title, err := matchSingle(titleExp, body)
-	if err != nil {
+	// FIXME: use better verification methods instead of comparing titles
+
+	title := matchSingle(titleExp, body)
+	if title == "" {
 		return true, nil
 	}
 

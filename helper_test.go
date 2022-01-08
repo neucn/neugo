@@ -13,29 +13,26 @@ func TestHelperMatch(t *testing.T) {
 	type matchTestCase struct {
 		Re        *regexp.Regexp
 		Content   string
-		ExpectErr bool
 		ExpectLen int
 	}
 
 	singleTestCases := []*matchTestCase{
-		{Re: regexp.MustCompile(`([a-z])`), Content: "9", ExpectErr: true, ExpectLen: 0},
-		{Re: regexp.MustCompile(`([a-z])`), Content: "az", ExpectErr: false, ExpectLen: 1},
-		{Re: regexp.MustCompile(`([a-z]+)`), Content: "az", ExpectErr: false, ExpectLen: 2},
+		{Re: regexp.MustCompile(`([a-z])`), Content: "9", ExpectLen: 0},
+		{Re: regexp.MustCompile(`([a-z])`), Content: "az", ExpectLen: 1},
+		{Re: regexp.MustCompile(`([a-z]+)`), Content: "az", ExpectLen: 2},
 	}
 	for _, c := range singleTestCases {
-		result, err := matchSingle(c.Re, c.Content)
-		a.Equal(c.ExpectErr, err != nil)
+		result := matchSingle(c.Re, c.Content)
 		a.Equal(c.ExpectLen, len(result))
 	}
 
 	multipleTestCases := []*matchTestCase{
-		{Re: regexp.MustCompile(`([a-z])`), Content: "9", ExpectErr: true, ExpectLen: 0},
-		{Re: regexp.MustCompile(`([a-z])`), Content: "az", ExpectErr: false, ExpectLen: 2},
-		{Re: regexp.MustCompile(`([a-z]+)`), Content: "az", ExpectErr: false, ExpectLen: 1},
+		{Re: regexp.MustCompile(`([a-z])`), Content: "9", ExpectLen: 0},
+		{Re: regexp.MustCompile(`([a-z])`), Content: "az", ExpectLen: 2},
+		{Re: regexp.MustCompile(`([a-z]+)`), Content: "az", ExpectLen: 1},
 	}
 	for _, c := range multipleTestCases {
-		result, err := matchMultiple(c.Re, c.Content)
-		a.Equal(c.ExpectErr, err != nil)
+		result := matchMultiple(c.Re, c.Content)
 		a.Equal(c.ExpectLen, len(result))
 	}
 }
@@ -55,9 +52,8 @@ func TestHelperCookie(t *testing.T) {
 		Host:   "neu.test",
 		Path:   "/",
 	}
-	_, err := getCookie(client.Jar.Cookies(u), "whatever")
-	a.NotNil(err)
-	v, err := getCookie(client.Jar.Cookies(u), cookie.Name)
-	a.Nil(err)
-	a.Equal(cookie.Value, v)
+	c := getCookie(client.Jar.Cookies(u), "whatever")
+	a.Empty(c)
+	c = getCookie(client.Jar.Cookies(u), cookie.Name)
+	a.Equal(cookie.Value, c)
 }

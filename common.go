@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// NewSession 获取带有 cookiejar 的 http.Client，默认 Timeout 为6秒
+// NewSession returns a *http.Client with an empty cookie jar and timeout of 6s.
 func NewSession() *http.Client {
 	jar, _ := cookiejar.New(nil)
 	n := &http.Client{
@@ -16,12 +16,14 @@ func NewSession() *http.Client {
 	return n
 }
 
-// Platform 需要操作的平台
+// Platform is the platform providing authentication service.
 type Platform = byte
 
 const (
-	CAS    Platform = iota // CAS pass.neu.edu.cn
-	WebVPN                 // WebVPN webvpn.neu.edu.cn
+	// CAS pass.neu.edu.cn
+	CAS Platform = iota
+	// WebVPN webvpn.neu.edu.cn
+	WebVPN
 )
 
 type config struct {
@@ -31,7 +33,7 @@ type config struct {
 	Platform                  Platform
 }
 
-// Use 接收一个 *http.Client，提供登陆动作的链式调用。如果 client 没有 cookiejar 会自动加上一个空 cookiejar.
+// Use receives a *http.Client, and will add an empty cookie jar if the client doesn't have.
 func Use(client *http.Client) AuthSelector {
 	if client.Jar == nil {
 		jar, _ := cookiejar.New(nil)
@@ -40,20 +42,20 @@ func Use(client *http.Client) AuthSelector {
 	return &useCtx{config: config{Client: client}}
 }
 
-// AuthSelector 选择鉴权方式
+// AuthSelector determines the authentication type
 type AuthSelector interface {
-	// WithAuth 通过一网通账号密码登陆
+	// WithAuth through username and password on CAS
 	WithAuth(username, password string) ActionSelector
-	// WithToken 通过 Token 登陆，Token 与平台有关
+	// WithToken through platform-dependent token
 	WithToken(token string) ActionSelector
 }
 
-// ActionSelector 选择要执行的动作
+// ActionSelector determines the action to be performed
 type ActionSelector interface {
-	// Login 登陆指定平台
+	// Login tries to log in to specific platform.
 	Login(platform Platform) error
 
-	// DebugLogin 返回页面内容，用于调试
+	// DebugLogin does the same as Login except returns response text.
 	DebugLogin(platform Platform) (string, error)
 }
 
@@ -64,7 +66,6 @@ type useCtx struct {
 var _ AuthSelector = &useCtx{}
 var _ ActionSelector = &useCtx{}
 
-// 使用账号密码
 func (c *useCtx) WithAuth(username, password string) ActionSelector {
 	c.UseToken = false
 	c.Username = username
@@ -72,34 +73,34 @@ func (c *useCtx) WithAuth(username, password string) ActionSelector {
 	return c
 }
 
-// 使用Token
 func (c *useCtx) WithToken(token string) ActionSelector {
 	c.UseToken = true
 	c.Token = token
 	return c
 }
 
-// 登陆
 func (c *useCtx) Login(platform Platform) error {
 	c.Platform = platform
 	_, err := login(c.config)
 	return err
 }
 
-// private 仅调试用，可通过类型强制转换使用
 func (c *useCtx) DebugLogin(platform Platform) (string, error) {
 	c.Platform = platform
 	return login(c.config)
 }
 
-// About 接收一个 *http.Client，提供查询相关信息的链式调用
+// About receives a *http.Client so can query some info about the session.
 func About(client *http.Client) QuerySelector {
 	return &aboutCtx{Client: client}
 }
 
-// QuerySelector 选择要查询的内容
+// QuerySelector determines the info to be queried.
 type QuerySelector interface {
-	Token(platform Platform) (string, error)
+	// Token returns the platform-dependent token.
+	//
+	// If no token exists in the session, returns an empty string.
+	Token(platform Platform) string
 }
 
 type aboutCtx struct {
@@ -108,6 +109,6 @@ type aboutCtx struct {
 
 var _ QuerySelector = &aboutCtx{}
 
-func (c *aboutCtx) Token(platform Platform) (string, error) {
+func (c *aboutCtx) Token(platform Platform) string {
 	return getToken(c.Client, platform)
 }

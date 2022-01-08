@@ -1,16 +1,11 @@
 package neugo
 
 import (
-	"errors"
 	"net/http"
 	"net/url"
 )
 
-var (
-	ErrorCookieNotFound = errors.New("no such entry found in the cookies")
-)
-
-// 设置cookie
+// INTERNAL. Add cookie into the client. Note that the scheme is forced to be `https`.
 func setCookie(client *http.Client, cookie *http.Cookie) {
 	client.Jar.SetCookies(&url.URL{
 		Scheme: "https",
@@ -19,14 +14,14 @@ func setCookie(client *http.Client, cookie *http.Cookie) {
 	}, []*http.Cookie{cookie})
 }
 
-// 提取出cookie中指定名称的值
-func getCookie(cookies []*http.Cookie, name string) (string, error) {
+// INTERNAL. Get the cookie of specific name from the client.
+func getCookie(cookies []*http.Cookie, name string) string {
 	for _, item := range cookies {
 		if item.Name == name {
-			return item.Value, nil
+			return item.Value
 		}
 	}
-	return "", ErrorCookieNotFound
+	return ""
 }
 
 var (
@@ -43,6 +38,7 @@ var (
 	}
 )
 
+// Set platform-dependent token.
 func setToken(client *http.Client, token string, platform Platform) {
 	cookie := &http.Cookie{
 		Value: token,
@@ -59,7 +55,8 @@ func setToken(client *http.Client, token string, platform Platform) {
 	setCookie(client, cookie)
 }
 
-func getToken(client *http.Client, platform Platform) (string, error) {
+// Get token from the client. An empty string will be returned if not exists.
+func getToken(client *http.Client, platform Platform) string {
 	if platform == WebVPN {
 		cookies := client.Jar.Cookies(webvpnCookieUrl)
 		return getCookie(cookies, "wengine_vpn_ticketwebvpn_neu_edu_cn")

@@ -44,7 +44,7 @@ func TestAll(t *testing.T) {
 
 	argList := flag.Args()
 	if len(argList) < 2 {
-		a.Fail("没有指定测试账号和密码")
+		a.Fail("should provide account to continue tests.")
 		return
 	}
 	username := argList[0]
@@ -64,21 +64,23 @@ func TestAll(t *testing.T) {
 	}
 
 	// about
-	token, err := About(session).Token(CAS)
-	a.Nil(err)
-	a.NotZero(len(token))
-	session1 := NewSession()
-	err = Use(session1).WithToken(token).Login(CAS)
-	if err != nil && strings.Contains(err.Error(), "timeout") {
-		a.Nil(err)
+	{
+		token := About(session).Token(CAS)
+		a.NotEmpty(token)
+		session := NewSession()
+		err = Use(session).WithToken(token).Login(CAS)
+		if err != nil && strings.Contains(err.Error(), "timeout") {
+			a.Nil(err)
+		}
 	}
 
-	token, err = About(session).Token(WebVPN)
-	a.Nil(err)
-	a.NotZero(len(token))
-	session2 := NewSession()
-	err = Use(session2).WithToken(token).Login(WebVPN)
-	if err != nil && strings.Contains(err.Error(), "timeout") {
-		a.Nil(err)
+	{
+		token := About(session).Token(WebVPN)
+		a.NotEmpty(token)
+		session := NewSession()
+		err = Use(session).WithToken(token).Login(WebVPN)
+		if err != nil && strings.Contains(err.Error(), "timeout") {
+			a.Nil(err)
+		}
 	}
 }

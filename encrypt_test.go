@@ -16,6 +16,6 @@ func TestEncryptWebVPNUrl(t *testing.T) {
 	}
 
 	for origin, encrypted := range testCases {
-		a.Equal(encrypted, EncryptToWebVPN(origin))
+		a.Equal(encrypted, EncryptURLToWebVPN(origin))
 	}
 }
