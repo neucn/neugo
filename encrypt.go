@@ -40,7 +40,7 @@ func EncryptURLToWebVPN(url string) string {
 	}
 
 	index := strings.Index(url, "/")
-	key := "wrdvpnisthebest!"
+	key := "b0A58a69394ce73@"
 
 	if index == -1 {
 		url = encrypt(url, key, key)
